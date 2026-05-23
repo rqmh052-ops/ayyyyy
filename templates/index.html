@@ -1,1 +1,655 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>شحن كروت فكة</title>
+    <style>
+        :root {
+            --bg: #000; --bg2: #111; --card: #1a1a2e; --input: #16213e;
+            --hover: #0f3460; --text: #fff; --text2: #a0a0b0; --muted: #666680;
+            --accent: #f59e0b; --accent-d: #d97706; --glow: rgba(245,158,11,0.3);
+            --ok: #10b981; --err: #ef4444; --info: #3b82f6; --border: #2a2a3e;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Cairo',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; -webkit-tap-highlight-color:transparent; }
+        .screen { display:none; min-height:100vh; }
+        .screen.active { display:block; }
 
+        /* LOGIN */
+        .login-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:linear-gradient(180deg,#000,#0a0a1a 50%,#111133); }
+        .login-card { width:100%; max-width:400px; background:var(--card); border-radius:24px; padding:40px 28px; box-shadow:0 4px 24px rgba(0,0,0,.4),0 0 60px rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.1); }
+        .logo { text-align:center; margin-bottom:28px; }
+        .logo-icon { font-size:60px; filter:drop-shadow(0 0 20px rgba(245,158,11,.4)); }
+        .logo h1 { font-size:26px; font-weight:900; color:var(--accent); text-shadow:0 0 20px var(--glow); }
+        .logo p { font-size:15px; color:var(--text2); margin-top:4px; }
+        .err-box { background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.3); color:#fca5a5; padding:10px 14px; border-radius:10px; margin-bottom:16px; text-align:center; font-size:13px; display:none; }
+
+        .inp-group { position:relative; margin-bottom:14px; }
+        .inp-group .icon { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:16px; }
+        .inp { width:100%; padding:13px 40px 13px 14px; background:var(--input); border:2px solid transparent; border-radius:12px; color:#fff; font-size:15px; font-family:inherit; text-align:right; }
+        .inp:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--glow); }
+        .inp::placeholder { color:var(--muted); text-align:center; }
+
+        .btn { width:100%; padding:13px; border:none; border-radius:12px; font-size:17px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .3s; }
+        .btn-gold { background:linear-gradient(135deg,var(--accent),var(--accent-d)); color:#000; }
+        .btn-gold:hover { transform:translateY(-2px); box-shadow:0 8px 24px var(--glow); }
+        .btn-gold:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+        .footer-login { text-align:center; margin-top:24px; color:var(--muted); font-size:11px; }
+        .footer-login .sup { font-size:12px; color:var(--muted); margin-bottom:6px; }
+
+        /* NAV */
+        .navbar { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--bg2); border-bottom:2px solid var(--accent); position:sticky; top:0; z-index:100; }
+        .nav-hello { font-size:17px; font-weight:700; color:var(--accent); }
+        .nav-r { display:flex; align-items:center; gap:10px; }
+        .stars-badge { background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.1)); border:1px solid rgba(245,158,11,.3); padding:5px 12px; border-radius:18px; font-size:13px; font-weight:700; color:var(--accent); }
+        .btn-out { background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.3); color:#fca5a5; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:16px; cursor:pointer; }
+        .btn-nav { background:rgba(59,130,246,.15); border:1px solid rgba(59,130,246,.3); color:#93c5fd; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:16px; cursor:pointer; }
+
+        /* CONTENT */
+        .content { padding:14px; }
+        .sec { margin-bottom:22px; }
+        .sec-title { font-size:17px; font-weight:700; color:var(--accent); margin-bottom:12px; padding-bottom:7px; border-bottom:1px solid var(--border); }
+
+        /* BALANCE */
+        .bal-card { background:linear-gradient(135deg,var(--card),#1e1e3a); border:2px solid rgba(245,158,11,.2); border-radius:16px; padding:22px; text-align:center; margin-bottom:22px; box-shadow:0 0 30px rgba(245,158,11,.08); }
+        .bal-label { font-size:13px; color:var(--text2); margin-bottom:6px; }
+        .bal-val { font-size:44px; font-weight:900; color:var(--accent); text-shadow:0 0 30px var(--glow); line-height:1; }
+        .bal-unit { font-size:16px; color:var(--accent-d); margin-right:6px; }
+        .bal-info { margin-top:10px; font-size:12px; color:var(--muted); background:rgba(0,0,0,.3); padding:6px 14px; border-radius:16px; display:inline-block; }
+
+        /* PRODUCTS */
+        .prods { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .prod { background:var(--card); border:2px solid var(--border); border-radius:10px; padding:12px 10px; cursor:pointer; transition:all .3s; text-align:center; -webkit-user-select:none; user-select:none; }
+        .prod:hover { border-color:var(--accent); background:var(--hover); }
+        .prod.sel { border-color:var(--accent); background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.05)); box-shadow:0 0 20px var(--glow); }
+        .prod-name { font-size:12px; color:var(--text); margin-bottom:4px; line-height:1.3; }
+        .prod-price { font-size:14px; font-weight:700; color:var(--accent); }
+
+        /* FORM */
+        .form-group { margin-bottom:16px; }
+        .form-label { display:block; font-size:13px; font-weight:600; color:var(--text2); margin-bottom:6px; }
+        .form-hint { display:block; font-size:11px; color:var(--muted); margin-top:3px; }
+
+        /* CHARGE BTN */
+        .btn-charge { margin-top:6px; font-size:18px; height:52px; }
+
+        /* TRANSACTIONS */
+        .trans { max-height:350px; overflow-y:auto; }
+        .tr-item { padding:10px 12px; background:var(--card); border:1px solid var(--border); border-radius:8px; margin-bottom:6px; border-right:3px solid var(--border); }
+        .tr-item.ok { border-right-color:var(--ok); }
+        .tr-item.fail { border-right-color:var(--err); }
+        .tr-main { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
+        .tr-prod { color:var(--text2); font-size:12px; flex:1; }
+        .tr-status { padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700; }
+        .tr-status.ok { background:rgba(16,185,129,.2); color:var(--ok); }
+        .tr-status.fail { background:rgba(239,68,68,.2); color:var(--err); }
+        .tr-det { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); }
+
+        /* ADMIN */
+        .stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px; }
+        .stat { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 10px; text-align:center; }
+        .stat-val { font-size:22px; font-weight:900; color:var(--accent); }
+        .stat-lbl { font-size:11px; color:var(--muted); margin-top:3px; }
+        .set-row { display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px; flex-wrap:wrap; gap:8px; }
+        .set-info { display:flex; gap:6px; align-items:center; }
+        .set-label { font-weight:600; color:var(--text2); font-size:13px; }
+        .set-val { color:var(--accent); font-weight:700; }
+        .set-act { display:flex; gap:6px; align-items:center; }
+        .inp-sm { padding:8px 10px; background:var(--input); border:2px solid transparent; border-radius:8px; color:#fff; font-size:13px; font-family:inherit; text-align:right; width:90px; }
+        .inp-sm:focus { outline:none; border-color:var(--accent); }
+        .add-form { display:flex; gap:8px; flex-wrap:wrap; }
+        .add-form .inp-sm { flex:1; min-width:100px; }
+
+        .btn-sm { padding:7px 14px; border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px; font-family:inherit; cursor:pointer; transition:all .3s; background:var(--input); }
+        .btn-sm:hover { background:var(--hover); }
+        .btn-ok { background:rgba(16,185,129,.2); border-color:var(--ok); color:var(--ok); }
+        .btn-del { background:rgba(239,68,68,.2); border-color:var(--err); color:var(--err); }
+        .btn-inf { background:rgba(59,130,246,.2); border-color:var(--info); color:var(--info); }
+        .btn-wrn { background:rgba(245,158,11,.2); border-color:var(--accent); color:var(--accent); }
+
+        .u-row { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:var(--card); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; }
+        .u-info { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .u-name { font-weight:700; font-size:13px; }
+        .u-badge { background:rgba(245,158,11,.2); color:var(--accent); padding:2px 8px; border-radius:8px; font-size:10px; font-weight:700; }
+        .u-stars { font-size:12px; color:var(--text2); }
+        .u-acts { display:flex; gap:4px; }
+
+        /* FOOTER */
+        .foot { text-align:center; padding:16px 0 24px; border-top:1px solid var(--border); margin-top:16px; color:var(--muted); font-size:10px; }
+        .foot .sup { font-size:11px; margin-bottom:6px; }
+
+        /* TOAST */
+        .toast { position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-80px); padding:12px 20px; border-radius:10px; font-size:14px; font-weight:600; z-index:9999; transition:transform .4s ease; max-width:90%; text-align:center; box-shadow:0 4px 24px rgba(0,0,0,.4); }
+        .toast.show { transform:translateX(-50%) translateY(0); }
+        .toast.ok { background:linear-gradient(135deg,rgba(16,185,129,.9),rgba(5,150,105,.9)); color:#fff; }
+        .toast.err { background:linear-gradient(135deg,rgba(239,68,68,.9),rgba(185,28,28,.9)); color:#fff; }
+
+        /* LOADING */
+        .loading { position:fixed; inset:0; background:rgba(0,0,0,.85); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9000; }
+        .loading p { color:var(--accent); font-size:16px; font-weight:700; margin-top:14px; }
+        .spinner { width:44px; height:44px; border:4px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        /* MODAL */
+        .modal-ov { position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; z-index:8000; padding:16px; }
+        .modal-card { background:var(--card); border:1px solid var(--border); border-radius:16px; width:100%; max-width:380px; box-shadow:0 4px 24px rgba(0,0,0,.4); }
+        .modal-hdr { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); }
+        .modal-hdr h3 { font-size:16px; color:var(--accent); }
+        .modal-close { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; }
+        .modal-body { padding:16px 18px; }
+        .modal-body p { margin-bottom:8px; font-size:13px; }
+        .modal-body strong { color:var(--accent); }
+        .modal-body .text-danger { color:var(--err); font-size:12px; }
+        .modal-ftr { display:flex; gap:8px; justify-content:flex-start; padding:14px 18px; border-top:1px solid var(--border); }
+        .modal-body .form-group { margin-top:10px; }
+        .modal-body .inp-sm { width:100%; }
+
+        .hidden { display:none !important; }
+
+        @media(max-width:380px) {
+            .prods { grid-template-columns:1fr; }
+            .bal-val { font-size:34px; }
+            .stats { grid-template-columns:1fr; }
+            .add-form { flex-direction:column; }
+            .add-form .inp-sm { width:100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== شاشة تسجيل الدخول ===== -->
+<div id="screen-login" class="screen active">
+    <div class="login-wrap">
+        <div class="login-card">
+            <div class="logo">
+                <div class="logo-icon">📱</div>
+                <h1>شحن كروت فكة</h1>
+                <p>لأي رقم فودافون</p>
+            </div>
+            <div id="login-err" class="err-box"></div>
+            <div class="inp-group">
+                <span class="icon">👤</span>
+                <input type="text" id="login-user" class="inp" placeholder="اسم المستخدم" autocomplete="username">
+            </div>
+            <div class="inp-group">
+                <span class="icon">🔒</span>
+                <input type="password" id="login-pass" class="inp" placeholder="الرقم السري" autocomplete="current-password">
+            </div>
+            <button class="btn btn-gold" onclick="doLogin()">دخول</button>
+            <div class="footer-login">
+                <div class="sup">للشحن والدعم: 01019466176</div>
+                المطور: Hamada Ali 2026
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== شاشة المستخدم ===== -->
+<div id="screen-main" class="screen">
+    <nav class="navbar">
+        <span class="nav-hello" id="main-hello">مرحبا</span>
+        <div class="nav-r">
+            <div class="stars-badge">⭐ <span id="main-stars">0</span> نجمة</div>
+            <div class="btn-out" onclick="doLogout()">🚪</div>
+        </div>
+    </nav>
+    <div class="content">
+        <div class="bal-card">
+            <div class="bal-label">رصيد النجوم</div>
+            <div class="bal-val"><span id="bal-stars">0</span><span class="bal-unit">نجمة</span></div>
+            <div class="bal-info">سعر النجمة: <span id="bal-price">2.5</span> جنيه | كل شحنة = 1 نجمة</div>
+        </div>
+
+        <div class="sec">
+            <h2 class="sec-title">📦 اختر الكارت</h2>
+            <div class="prods" id="prods-grid"></div>
+        </div>
+
+        <div class="sec">
+            <h2 class="sec-title">📱 بيانات الشحن</h2>
+            <div class="form-group">
+                <label class="form-label">رقم المستلم</label>
+                <div class="inp-group">
+                    <span class="icon">📱</span>
+                    <input type="tel" id="charge-recv" class="inp" placeholder="01xxxxxxxxx" maxlength="11">
+                </div>
+                <span class="form-hint">رقم فودافون 11 رقم</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">الرقم السري فودافون كاش</label>
+                <div class="inp-group">
+                    <span class="icon">🔐</span>
+                    <input type="password" id="charge-pin" class="inp" placeholder="6 أرقام" maxlength="6">
+                </div>
+                <span class="form-hint">الرقم السري 6 أرقام الخاص بفودافون كاش</span>
+            </div>
+            <button class="btn btn-gold btn-charge" id="charge-btn" onclick="doCharge()">🔄 شحن الكرت</button>
+        </div>
+
+        <div class="sec">
+            <h2 class="sec-title">📋 آخر العمليات</h2>
+            <div class="trans" id="main-trans"></div>
+        </div>
+
+        <div class="foot">
+            <div class="sup">للشحن والدعم: 01019466176</div>
+            المطور: Hamada Ali 2026
+        </div>
+    </div>
+</div>
+
+<!-- ===== شاشة الأدمن ===== -->
+<div id="screen-admin" class="screen">
+    <nav class="navbar" style="border-bottom-color:var(--accent); background:linear-gradient(180deg,var(--bg2),rgba(245,158,11,.05));">
+        <span class="nav-hello">👑 لوحة التحكم</span>
+        <div class="nav-r">
+            <div class="btn-nav" onclick="showScreen('main')">🏠</div>
+            <div class="btn-out" onclick="doLogout()">🚪</div>
+        </div>
+    </nav>
+    <div class="content">
+        <div class="stats">
+            <div class="stat"><div class="stat-val" id="s-users">0</div><div class="stat-lbl">مستخدم</div></div>
+            <div class="stat"><div class="stat-val" id="s-trans">0</div><div class="stat-lbl">عملية</div></div>
+            <div class="stat"><div class="stat-val" id="s-price">0</div><div class="stat-lbl">سعر النجمة</div></div>
+        </div>
+
+        <div class="sec">
+            <h2 class="sec-title">⚙️ الإعدادات</h2>
+            <div class="set-row">
+                <div class="set-info"><span class="set-label">سعر النجمة:</span><span class="set-val" id="admin-price">2.5</span></div>
+                <div class="set-act">
+                    <input type="number" id="new-price" class="inp-sm" placeholder="سعر جديد" step="0.5" min="0.5">
+                    <button class="btn-sm btn-wrn" onclick="changePrice()">تغيير</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sec">
+            <h2 class="sec-title">➕ إضافة مستخدم</h2>
+            <div class="add-form">
+                <input type="text" id="new-uname" class="inp-sm" placeholder="اسم المستخدم">
+                <input type="password" id="new-upass" class="inp-sm" placeholder="الرقم السري">
+                <button class="btn-sm btn-ok" onclick="addUser()">إضافة</button>
+            </div>
+        </div>
+
+        <div class="sec">
+            <h2 class="sec-title">👥 المستخدمين</h2>
+            <div id="admin-users"></div>
+        </div>
+
+        <div class="sec">
+            <h2 class="sec-title">📊 آخر العمليات</h2>
+            <div class="trans" id="admin-trans"></div>
+        </div>
+
+        <div class="sec">
+            <h2 class="sec-title">💰 سجل شحن النجوم</h2>
+            <div class="trans" id="admin-starlog"></div>
+        </div>
+
+        <div class="foot">
+            <div class="sup">للشحن والدعم: 01019466176</div>
+            المطور: Hamada Ali 2026
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast hidden"><span id="toast-msg"></span></div>
+<!-- LOADING -->
+<div id="loading" class="loading hidden"><div class="spinner"></div><p id="loading-text">جاري الشحن...</p></div>
+<!-- MODAL -->
+<div id="modal-ov" class="modal-ov hidden" onclick="closeModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-hdr"><h3 id="modal-title">حوار</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-ftr" id="modal-ftr"></div>
+    </div>
+</div>
+
+<script>
+// ======================== المنتجات ========================
+let PRODUCTS = [];
+let STAR_PRICE = 2.5;
+let currentUser = null;
+let selectedProduct = null;
+
+// ======================== التنقل ========================
+function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    if (name === 'main') refreshMain();
+    if (name === 'admin') refreshAdmin();
+}
+
+// ======================== API Helper ========================
+async function api(url, method='GET', body=null) {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(url, opts);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'حدث خطأ');
+    return data;
+}
+
+// ======================== تسجيل الدخول ========================
+async function doLogin() {
+    const username = document.getElementById('login-user').value.trim();
+    const password = document.getElementById('login-pass').value;
+    const errBox = document.getElementById('login-err');
+
+    if (!username || !password) {
+        errBox.textContent = 'أدخل اسم المستخدم والرقم السري';
+        errBox.style.display = 'block';
+        return;
+    }
+
+    try {
+        const data = await api('/api/login', 'POST', { username, password });
+        currentUser = data.user;
+        errBox.style.display = 'none';
+        document.getElementById('login-user').value = '';
+        document.getElementById('login-pass').value = '';
+        toast('مرحباً ' + currentUser.username, 'ok');
+        if (currentUser.is_admin) {
+            showScreen('admin');
+        } else {
+            showScreen('main');
+        }
+    } catch (e) {
+        errBox.textContent = e.message;
+        errBox.style.display = 'block';
+    }
+}
+
+async function doLogout() {
+    try { await api('/api/logout', 'POST'); } catch(e) {}
+    currentUser = null;
+    showScreen('login');
+}
+
+// ======================== تحديث الشاشة الرئيسية ========================
+async function refreshMain() {
+    if (!currentUser) return;
+    try {
+        const data = await api('/api/me');
+        currentUser = data;
+    } catch(e) { return doLogout(); }
+
+    document.getElementById('main-hello').textContent = 'مرحباً، ' + currentUser.username;
+    document.getElementById('main-stars').textContent = currentUser.stars;
+    document.getElementById('bal-stars').textContent = currentUser.stars;
+    document.getElementById('bal-price').textContent = STAR_PRICE;
+
+    // المنتجات
+    if (PRODUCTS.length === 0) {
+        try { PRODUCTS = await api('/api/products'); } catch(e) {}
+    }
+    const grid = document.getElementById('prods-grid');
+    grid.innerHTML = PRODUCTS.map((p, i) =>
+        '<div class="prod ' + (selectedProduct && selectedProduct.id === p.id ? 'sel' : (i===0 && !selectedProduct ? 'sel':'')) + '" data-idx="' + i + '" onclick="selectProd(' + i + ')">' +
+            '<div class="prod-name">' + p.name + '</div>' +
+            '<div class="prod-price">' + p.price + ' جنيه</div>' +
+        '</div>'
+    ).join('');
+    if (!selectedProduct && PRODUCTS.length > 0) selectedProduct = PRODUCTS[0];
+
+    // العمليات
+    try {
+        const trans = await api('/api/transactions');
+        document.getElementById('main-trans').innerHTML = trans.map(t =>
+            '<div class="tr-item ' + (t.status==='نجاح'?'ok':'fail') + '">' +
+                '<div class="tr-main">' +
+                    '<span class="tr-prod">' + t.product_name + '</span>' +
+                    '<span class="tr-status ' + (t.status==='نجاح'?'ok':'fail') + '">' + t.status + '</span>' +
+                '</div>' +
+                '<div class="tr-det"><span>' + t.receiver + '</span><span>' + new Date(t.created_at).toLocaleString('ar-EG') + '</span></div>' +
+            '</div>'
+        ).join('') || '<div style="text-align:center;color:var(--muted);padding:20px">لا توجد عمليات بعد</div>';
+    } catch(e) {}
+}
+
+function selectProd(idx) {
+    selectedProduct = PRODUCTS[idx];
+    document.querySelectorAll('.prod').forEach((el, i) => {
+        el.classList.toggle('sel', i === idx);
+    });
+}
+
+// ======================== الشحن ========================
+async function doCharge() {
+    if (!currentUser) return;
+    const receiver = document.getElementById('charge-recv').value.trim();
+    const pin = document.getElementById('charge-pin').value.trim();
+
+    if (!receiver || receiver.length !== 11 || !receiver.startsWith('01')) {
+        toast('أدخل رقم صحيح 11 رقم يبدأ بـ 01', 'err');
+        return;
+    }
+    if (!pin || pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+        toast('أدخل الرقم السري 6 أرقام', 'err');
+        return;
+    }
+
+    const btn = document.getElementById('charge-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري الشحن...';
+    showLoad('جاري المصادقة...');
+
+    try {
+        const data = await api('/api/charge', 'POST', {
+            product_id: selectedProduct.id,
+            receiver: receiver,
+            pin: pin
+        });
+        hideLoad();
+        toast('✅ ' + (data.message || 'تم الشحن بنجاح'), 'ok');
+        document.getElementById('charge-recv').value = '';
+        document.getElementById('charge-pin').value = '';
+        refreshMain();
+    } catch (e) {
+        hideLoad();
+        toast('❌ ' + e.message, 'err');
+        refreshMain();
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 شحن الكرت';
+    }
+}
+
+// ======================== لوحة تحكم الأدمن ========================
+async function refreshAdmin() {
+    if (!currentUser || !currentUser.is_admin) return;
+
+    try {
+        const [stats, users, trans, starPrice, starPurchases] = await Promise.all([
+            api('/api/admin/stats'),
+            api('/api/admin/users'),
+            api('/api/admin/all_transactions'),
+            api('/api/admin/star_price'),
+            api('/api/admin/star_purchases')
+        ]);
+
+        STAR_PRICE = starPrice.star_price;
+        document.getElementById('s-users').textContent = stats.users;
+        document.getElementById('s-trans').textContent = stats.transactions;
+        document.getElementById('s-price').textContent = stats.star_price + ' ج.م';
+        document.getElementById('admin-price').textContent = stats.star_price + ' جنيه';
+
+        // المستخدمين
+        document.getElementById('admin-users').innerHTML = users.map(u =>
+            '<div class="u-row">' +
+                '<div class="u-info">' +
+                    '<span class="u-name">' + u.username + '</span>' +
+                    (u.is_admin ? '<span class="u-badge">أدمن</span>' : '') +
+                    '<span class="u-stars">⭐ ' + u.stars + ' نجمة</span>' +
+                '</div>' +
+                (!u.is_admin ? '<div class="u-acts">' +
+                    '<button class="btn-sm btn-ok" onclick="dlgAddStars(' + u.id + ',\'' + u.username + '\',' + u.stars + ')">➕</button>' +
+                    '<button class="btn-sm btn-inf" onclick="dlgEditStars(' + u.id + ',\'' + u.username + '\',' + u.stars + ')">✏️</button>' +
+                    '<button class="btn-sm btn-del" onclick="dlgDelUser(' + u.id + ',\'' + u.username + '\')">🗑️</button>' +
+                '</div>' : '') +
+            '</div>'
+        ).join('');
+
+        // العمليات
+        document.getElementById('admin-trans').innerHTML = trans.map(t =>
+            '<div class="tr-item ' + (t.status==='نجاح'?'ok':'fail') + '">' +
+                '<div class="tr-main">' +
+                    '<span class="u-name">' + (t.username||'?') + '</span>' +
+                    '<span class="tr-prod">' + t.product_name + '</span>' +
+                    '<span>📱 ' + t.receiver + '</span>' +
+                    '<span class="tr-status ' + (t.status==='نجاح'?'ok':'fail') + '">' + t.status + '</span>' +
+                '</div>' +
+                '<div class="tr-det"><span>' + (t.details||'').substring(0,35) + '</span><span>🕐 ' + new Date(t.created_at).toLocaleString('ar-EG') + '</span></div>' +
+            '</div>'
+        ).join('') || '<div style="text-align:center;color:var(--muted);padding:20px">لا توجد عمليات</div>';
+
+        // سجل النجوم
+        document.getElementById('admin-starlog').innerHTML = starPurchases.map(s =>
+            '<div class="tr-item ok">' +
+                '<div class="tr-main">' +
+                    '<span class="u-name">' + (s.username||'?') + '</span>' +
+                    '<span class="tr-prod">+' + s.stars + ' نجمة</span>' +
+                    '<span class="tr-status ok">' + s.amount + ' ج.م</span>' +
+                '</div>' +
+                '<div class="tr-det"><span>🕐 ' + new Date(s.created_at).toLocaleString('ar-EG') + '</span></div>' +
+            '</div>'
+        ).join('') || '<div style="text-align:center;color:var(--muted);padding:20px">لا توجد عمليات</div>';
+    } catch(e) {
+        toast('خطأ في تحميل البيانات', 'err');
+    }
+}
+
+async function changePrice() {
+    const val = parseFloat(document.getElementById('new-price').value);
+    if (!val || val <= 0) { toast('أدخل سعر صحيح', 'err'); return; }
+    try {
+        await api('/api/admin/star_price', 'POST', { star_price: val });
+        toast('✅ تم تغيير السعر إلى ' + val + ' جنيه', 'ok');
+        document.getElementById('new-price').value = '';
+        refreshAdmin();
+    } catch(e) { toast(e.message, 'err'); }
+}
+
+async function addUser() {
+    const username = document.getElementById('new-uname').value.trim();
+    const password = document.getElementById('new-upass').value;
+    if (!username || !password) { toast('أدخل اسم المستخدم والرقم السري', 'err'); return; }
+    if (username.length < 3) { toast('اسم المستخدم لازم 3 حروف على الأقل', 'err'); return; }
+    try {
+        await api('/api/admin/add_user', 'POST', { username, password });
+        toast('✅ تم إضافة المستخدم ' + username, 'ok');
+        document.getElementById('new-uname').value = '';
+        document.getElementById('new-upass').value = '';
+        refreshAdmin();
+    } catch(e) { toast(e.message, 'err'); }
+}
+
+// ======================== حوارات الأدمن ========================
+function dlgAddStars(uid, uname, curStars) {
+    showModal('إضافة نجوم لـ ' + uname,
+        '<p>الرصيد الحالي: <strong>' + curStars + '</strong> نجمة</p>' +
+         '<p>سعر النجمة: <strong>' + STAR_PRICE + '</strong> جنيه | الحد الأدنى: <strong>40</strong></p>' +
+         '<div class="form-group"><input type="number" id="dlg-stars" class="inp-sm" placeholder="عدد النجوم" min="40" style="width:100%"></div>',
+        '<button class="btn-sm btn-ok" onclick="doAddStars(' + uid + ')">➕ إضافة</button>' +
+         '<button class="btn-sm" onclick="closeModal()">إلغاء</button>'
+    );
+}
+async function doAddStars(uid) {
+    const stars = parseInt(document.getElementById('dlg-stars').value);
+    if (!stars || stars < 40) { toast('الحد الأدنى 40 نجمة', 'err'); return; }
+    try {
+        const data = await api('/api/admin/add_stars', 'POST', { user_id: uid, stars: stars });
+        toast('✅ ' + data.message, 'ok');
+        closeModal();
+        refreshAdmin();
+    } catch(e) { toast(e.message, 'err'); }
+}
+
+function dlgEditStars(uid, uname, curStars) {
+    showModal('تعديل رصيد ' + uname,
+        '<p>الرصيد الحالي: <strong>' + curStars + '</strong> نجمة</p>' +
+         '<div class="form-group"><input type="number" id="dlg-newstars" class="inp-sm" placeholder="الرصيد الجديد" min="0" style="width:100%"></div>',
+        '<button class="btn-sm btn-inf" onclick="doEditStars(' + uid + ')">💾 حفظ</button>' +
+         '<button class="btn-sm" onclick="closeModal()">إلغاء</button>'
+    );
+}
+async function doEditStars(uid) {
+    const stars = parseInt(document.getElementById('dlg-newstars').value);
+    if (isNaN(stars) || stars < 0) { toast('أدخل رقماً صحيحاً', 'err'); return; }
+    try {
+        await api('/api/admin/edit_stars', 'POST', { user_id: uid, stars: stars });
+        toast('✅ تم تعديل الرصيد إلى ' + stars + ' نجمة', 'ok');
+        closeModal();
+        refreshAdmin();
+    } catch(e) { toast(e.message, 'err'); }
+}
+
+function dlgDelUser(uid, uname) {
+    showModal('حذف مستخدم',
+        '<p>هل أنت متأكد من حذف <strong>' + uname + '</strong>؟</p><p class="text-danger">هذا الإجراء لا يمكن التراجع عنه!</p>',
+        '<button class="btn-sm btn-del" onclick="doDelUser(' + uid + ')">🗑️ حذف</button>' +
+         '<button class="btn-sm" onclick="closeModal()">إلغاء</button>'
+    );
+}
+async function doDelUser(uid) {
+    try {
+        await api('/api/admin/delete_user/' + uid, 'POST');
+        toast('✅ تم حذف المستخدم', 'ok');
+        closeModal();
+        refreshAdmin();
+    } catch(e) { toast(e.message, 'err'); }
+}
+
+// ======================== مساعدات UI ========================
+function toast(msg, type) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    t.className = 'toast ' + type;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.classList.add('hidden'), 400); }, 3500);
+}
+function showLoad(text) {
+    document.getElementById('loading-text').textContent = text || 'جاري التحميل...';
+    document.getElementById('loading').classList.remove('hidden');
+}
+function hideLoad() { document.getElementById('loading').classList.add('hidden'); }
+function showModal(title, body, footer) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = body;
+    document.getElementById('modal-ftr').innerHTML = footer;
+    document.getElementById('modal-ov').classList.remove('hidden');
+}
+function closeModal() { document.getElementById('modal-ov').classList.add('hidden'); }
+
+// تنسيق المدخلات
+document.addEventListener('DOMContentLoaded', function() {
+    const recv = document.getElementById('charge-recv');
+    if (recv) recv.addEventListener('input', function(e) { e.target.value = e.target.value.replace(/\D/g,'').slice(0,11); });
+    const pin = document.getElementById('charge-pin');
+    if (pin) pin.addEventListener('input', function(e) { e.target.value = e.target.value.replace(/\D/g,'').slice(0,6); });
+
+    document.getElementById('login-pass').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doLogin();
+    });
+    document.getElementById('login-user').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('login-pass').focus();
+    });
+
+    // تحقق من الجلسة
+    api('/api/me').then(data => {
+        currentUser = data;
+        if (data.is_admin) showScreen('admin');
+        else showScreen('main');
+    }).catch(() => {
+        showScreen('login');
+    });
+});
+</script>
+</body>
+</html>
