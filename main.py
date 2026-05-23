@@ -110,6 +110,9 @@ def sha256_hash(text):
     return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
 
+# Initialize DB on import for WSGI servers like gunicorn
+init_db()
+
 # ======================== Auth ========================
 def login_required(f):
     @wraps(f)
